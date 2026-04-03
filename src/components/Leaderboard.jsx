@@ -10,17 +10,13 @@ import { supabase } from '../lib/supabase'
 function Leaderboard() {
   // State: the list of scores we've fetched from the database
   const [scores, setScores] = useState([])
-  // State: whether we're still waiting for the data
-  const [loading, setLoading] = useState(true)
+  // If there's no Supabase client, we never load — skip "Loading..." (avoids setState in effect for that case).
+  const [loading, setLoading] = useState(() => Boolean(supabase))
 
   // useEffect runs code when the component first appears on screen.
   // This is where we fetch the leaderboard data.
   useEffect(() => {
-    // No client → env vars missing; don't call the API (would crash — see ../lib/supabase.js).
-    if (!supabase) {
-      setLoading(false)
-      return
-    }
+    if (!supabase) return
 
     async function fetchScores() {
       // This is the API call! We're asking Supabase:

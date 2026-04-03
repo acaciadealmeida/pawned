@@ -5,6 +5,7 @@
 ## Stack
 
 - **React** + **Vite** — UI and dev/build tooling  
+- **[sat](https://www.npmjs.com/package/sat)** (SAT.js) — lightweight 2D polygon overlap for paw-vs-vase hit detection (no full physics engine)  
 - **Supabase** — leaderboard (`scores` table)  
 - **Vercel** (or any static host) — deploy the Vite production build  
 - Optional **Slack incoming webhook** — celebrate new high scores  
@@ -19,6 +20,17 @@ npm run dev
 ```
 
 Open the URL Vite prints (usually `http://localhost:5173`).
+
+### Hit box debugging (SAT collision overlays)
+
+Green = paw strike zone, blue = vase target — useful when tuning [`src/lib/pawVaseCollision.js`](src/lib/pawVaseCollision.js) and `.paw-hit` / `.vase-hit` in CSS.
+
+| Where | How |
+|-------|-----|
+| **Local dev** (`npm run dev`) | Overlays show automatically — no URL change needed. |
+| **Production** | Append **`?debugHit=1`** to your live game URL, e.g. `https://YOUR-DOMAIN.vercel.app/?debugHit=1` |
+
+Replace `YOUR-DOMAIN` with whatever host Vercel (or your host) gives you.
 
 ## Environment variables
 

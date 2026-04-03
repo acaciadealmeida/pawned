@@ -4,26 +4,31 @@
 // 1. A cat paw swings left-to-right like a pendulum
 // 2. A target object (vase) sits on a table
 // 3. Player clicks/taps/presses Enter to swat
-// 4. We check if the paw is close enough to the target — that's "hit detection"
+// 4. Hit detection uses SAT.js — real 2D overlap of paw vs vase regions (see pawVaseCollision.js)
 // 5. Hit → score +1, paw speeds up. Miss → lose a life.
 // 6. After 3 misses → game over.
 //
 // IMPORTANT: The paw position is driven entirely by JavaScript (not CSS animation).
-// This means the angle we calculate for hit detection is the SAME angle
-// used to visually rotate the pendulum — no sync issues.
+// The angle we calculate for hit detection is the SAME angle used to rotate the pendulum.
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import ScoreBoard from '../components/ScoreBoard'
 import catArmImg from '../assets/cat-arm.png'
-import catPawImg from '../assets/cat-paw.png'
 import vaseImg from '../assets/vase.png'
+import { isPawHittingVase } from '../lib/pawVaseCollision'
 
 const MAX_MISSES = 3
 const BASE_SPEED = 2000         // Starting swing duration in ms (slower = easier)
 const SPEED_DECREASE = 150      // How much faster each round gets (ms removed)
 const MIN_SPEED = 600           // Fastest possible swing (so it doesn't become impossible)
-const HIT_ZONE = 20             // How close the paw needs to be to the target (in degrees)
 const SWING_ANGLE = 40          // Max rotation in degrees (swings -40 to +40)
+
+/** SAT paw/vase hit regions: visible in dev, or add ?debugHit=1 to the URL (production). */
+function shouldShowHitDebug() {
+  if (import.meta.env.DEV) return true
+  if (typeof window === 'undefined') return false
+  return new URLSearchParams(window.location.search).get('debugHit') === '1'
+}
 
 function GameScreen({ onGameOver }) {
   const [score, setScore] = useState(0)
@@ -37,15 +42,17 @@ function GameScreen({ onGameOver }) {
   const [shaking, setShaking] = useState(false)
 
   // The current angle of the pendulum — updated every frame by requestAnimationFrame.
-  // This is the SINGLE SOURCE OF TRUTH for where the paw is.
   const [angle, setAngle] = useState(-SWING_ANGLE)
 
   // Direction flips each round: 1 = starts from left, -1 = starts from right.
-  // This keeps the player on their toes — you can't just learn one rhythm.
   const [direction, setDirection] = useState(1)
 
-  // Refs to track animation timing without causing re-renders
-  const animationStart = useRef(Date.now())
+  // Refs for SAT collision: invisible regions aligned with art (see App.css).
+  const pawHitRef = useRef(null)
+  const vaseHitRef = useRef(null)
+
+  // Refs to track animation timing without causing re-renders (initialized in useLayoutEffect — no Date.now in render).
+  const animationStart = useRef(0)
   const rafId = useRef(null)
   const swattingRef = useRef(false)
   const speedRef = useRef(speed)
@@ -56,20 +63,17 @@ function GameScreen({ onGameOver }) {
   useEffect(() => { speedRef.current = speed }, [speed])
   useEffect(() => { directionRef.current = direction }, [direction])
 
-  // Reset animation timer when speed changes (new round)
-  useEffect(() => {
+  // Reset swing phase when speed changes; sync clock before paint so frame 0 matches the pendulum.
+  useLayoutEffect(() => {
     animationStart.current = Date.now()
   }, [speed])
 
   // The animation loop — runs every frame (~60fps) and updates the pendulum angle.
-  // requestAnimationFrame is the standard way to do smooth animations in JS.
   useEffect(() => {
     function animate() {
       if (!swattingRef.current) {
         const elapsed = Date.now() - animationStart.current
         const progress = (elapsed % speed) / speed
-        // cos() creates smooth back-and-forth motion: -40 → 0 → +40 → 0 → -40
-        // direction flips which side it starts from each round
         const newAngle = -SWING_ANGLE * Math.cos(progress * Math.PI * 2) * direction
         setAngle(newAngle)
       }
@@ -78,7 +82,6 @@ function GameScreen({ onGameOver }) {
 
     rafId.current = requestAnimationFrame(animate)
 
-    // Cleanup: stop the animation loop when the component unmounts
     return () => cancelAnimationFrame(rafId.current)
   }, [speed, direction])
 
@@ -88,32 +91,27 @@ function GameScreen({ onGameOver }) {
 
     setSwatting(true)
 
-    // Calculate the angle RIGHT NOW instead of reading from state (which can lag 1-2 frames).
-    // This uses the exact same formula as the animation loop so it matches what's on screen.
+    // Same angle formula as the animation loop (matches the frame on screen).
     const elapsed = Date.now() - animationStart.current
     const progress = (elapsed % speedRef.current) / speedRef.current
     const currentAngle = -SWING_ANGLE * Math.cos(progress * Math.PI * 2) * directionRef.current
 
-    const distance = Math.abs(currentAngle)
-    const isHit = distance < HIT_ZONE
+    // SAT overlap between oriented paw box and vase box (viewport coordinates).
+    const isHit = isPawHittingVase(pawHitRef.current, vaseHitRef.current, currentAngle)
 
     if (isHit) {
       setFeedback('hit')
       setTargetVisible(false)
-      // Trigger the screen shake — a brief jolt that makes hits feel impactful
       setShaking(true)
       setTimeout(() => setShaking(false), 300)
 
-      // After the hit animation, set up the next round
       setTimeout(() => {
         const newScore = score + 1
         setScore(newScore)
         setFeedback(null)
         setTargetVisible(true)
         setSwatting(false)
-        // Speed up! But don't go below the minimum
         setSpeed((prev) => Math.max(MIN_SPEED, prev - SPEED_DECREASE))
-        // Flip the swing direction for the next round
         setDirection((prev) => prev * -1)
       }, 800)
     } else {
@@ -125,7 +123,6 @@ function GameScreen({ onGameOver }) {
         setFeedback(null)
         setSwatting(false)
 
-        // 3 misses = game over
         if (newMisses >= MAX_MISSES) {
           onGameOver(score)
         }
@@ -133,7 +130,6 @@ function GameScreen({ onGameOver }) {
     }
   }, [feedback, swatting, score, misses, onGameOver])
 
-  // Listen for Enter / Space key presses — same as clicking/tapping
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -145,28 +141,31 @@ function GameScreen({ onGameOver }) {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleSwat])
 
+  const hitDebug = shouldShowHitDebug()
+
   return (
-    <div className={`screen game-screen ${shaking ? 'shake' : ''}`} onClick={handleSwat}>
+    <div
+      className={`screen game-screen ${shaking ? 'shake' : ''}${hitDebug ? ' game-screen--debug-hits' : ''}`}
+      onClick={handleSwat}
+    >
       <ScoreBoard score={score} misses={misses} maxMisses={MAX_MISSES} />
 
-      {/* The game arena — table with target and swinging paw */}
       <div className="arena">
-        {/* The pendulum — rotated via inline style using the JS-calculated angle.
-            No CSS animation — JS drives everything so hit detection is always accurate. */}
         <div
           className={`pendulum ${swatting ? 'pendulum-swat' : ''}`}
           style={{ transform: `rotate(${angle}deg)` }}
         >
-          {/* The arm — the cat's sumi-e ink wash arm (includes paw at the end) */}
           <img src={catArmImg} alt="" className="pendulum-arm" />
+          {/* Strike zone for SAT — same transform as arm; size/position tuned in CSS */}
+          <div ref={pawHitRef} className="paw-hit" aria-hidden />
         </div>
 
-        {/* The table surface */}
         <div className="table-surface">
-          {/* The target object — a vase that shatters on hit */}
           {targetVisible ? (
             <div className={`target ${feedback === 'miss' ? 'target-miss' : ''}`}>
               <img src={vaseImg} alt="Vase" className="target-img" />
+              {/* After img so debug outline paints on top; pointer-events: none always */}
+              <div ref={vaseHitRef} className="vase-hit" aria-hidden />
             </div>
           ) : (
             <div className="shatter">
@@ -180,7 +179,6 @@ function GameScreen({ onGameOver }) {
         </div>
       </div>
 
-      {/* Feedback text — shows briefly on hit or miss */}
       {feedback === 'hit' && <div className="feedback feedback-hit">Pawn-ed!</div>}
       {feedback === 'miss' && <div className="feedback feedback-miss">Tsk!</div>}
 

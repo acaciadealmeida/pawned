@@ -150,6 +150,49 @@
   transition: transform 0.1s;
 }
 
+/* Invisible paw strike box — SAT.js uses size + the same angle as the pendulum (see pawVaseCollision.js). */
+.paw-hit {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 52px;
+  pointer-events: none;
+  opacity: 0;
+  box-sizing: border-box;
+}
+
+/* Slightly smaller than full art — forgiving but not huge */
+.vase-hit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 100px;
+  pointer-events: none;
+  opacity: 0;
+  box-sizing: border-box;
+}
+
+/* Debug: semi-transparent overlays — on in `npm run dev`, or `?debugHit=1` on the deployed URL */
+.game-screen--debug-hits .paw-hit {
+  opacity: 1;
+  z-index: 2;
+  background: rgba(46, 204, 113, 0.35);
+  outline: 2px solid rgba(34, 160, 85, 0.95);
+  outline-offset: -1px;
+}
+
+.game-screen--debug-hits .vase-hit {
+  opacity: 1;
+  z-index: 1;
+  background: rgba(52, 152, 219, 0.35);
+  outline: 2px solid rgba(30, 120, 190, 0.95);
+  outline-offset: -1px;
+}
+
 /* Swat lunge — the whole arm pushes down */
 .pendulum-swat .pendulum-arm {
   transform: translateY(14px) scale(1.05);
@@ -481,6 +524,8 @@
   .screen { padding: 24px 16px; gap: 16px; }
   .arena { height: 360px; }
   .pendulum-arm { height: 240px; width: 70px; }
+  .paw-hit { width: 40px; height: 44px; bottom: 0; }
+  .vase-hit { width: 72px; height: 82px; }
   .target-img { width: 100px; height: 110px; }
   .start-cat { width: 180px; }
   .feedback { font-size: 2.2rem; }
