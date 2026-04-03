@@ -6,7 +6,7 @@
 // 3. API call #2 — checking if this is the highest score (database SELECT)
 // 4. Webhook — if it IS a new high score, send a Slack message
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { sendSlackMessage } from '../lib/slack'
 
@@ -87,6 +87,26 @@ function GameOverScreen({ score, onPlayAgain }) {
     setSubmitting(false)
   }
 
+  // Enter / Space activate Play Again — unless focus is on the name field (then Enter submits, Space types).
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key !== 'Enter' && e.key !== ' ') return
+
+      const tag = e.target?.tagName
+      const typingInName = (tag === 'INPUT' || tag === 'TEXTAREA') && !submitted && supabase
+
+      if (typingInName) {
+        return
+      }
+
+      if (e.key === ' ') e.preventDefault()
+      onPlayAgain()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+    // supabase is a stable module import — only submitted changes when the form path toggles.
+  }, [submitted, onPlayAgain])
+
   return (
     <div className="screen gameover-screen">
       <h1 className="gameover-title">Game Over</h1>
@@ -134,7 +154,7 @@ function GameOverScreen({ score, onPlayAgain }) {
         </div>
       )}
 
-      <button className="play-again-button" onClick={onPlayAgain}>
+      <button type="button" className="play-again-button" onClick={onPlayAgain}>
         Play Again
       </button>
     </div>

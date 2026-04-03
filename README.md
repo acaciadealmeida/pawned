@@ -28,9 +28,9 @@ Green = paw strike zone, blue = vase target — useful when tuning [`src/lib/paw
 | Where | How |
 |-------|-----|
 | **Local dev** (`npm run dev`) | Overlays show automatically — no URL change needed. |
-| **Production** | Append **`?debugHit=1`** to your live game URL, e.g. `https://YOUR-DOMAIN.vercel.app/?debugHit=1` |
+| **Production (this project)** | **https://pawned-olive.vercel.app/?debugHit=1** |
 
-Replace `YOUR-DOMAIN` with whatever host Vercel (or your host) gives you.
+Any other host: append **`?debugHit=1`** to the live game URL the same way.
 
 ## Environment variables
 
