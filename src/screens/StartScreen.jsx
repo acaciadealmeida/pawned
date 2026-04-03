@@ -13,7 +13,7 @@ function StartScreen({ onPlay }) {
   return (
     <div className="screen start-screen">
       <img src={catImage} alt="A mischievous ink-wash cat" className="start-cat" />
-      <h1 className="game-title">Pawned</h1>
+      <h1 className="game-title">Pawn-ed</h1>
       <p className="tagline">Get off my table</p>
 
       <Leaderboard />

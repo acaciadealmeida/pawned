@@ -51,7 +51,7 @@ function GameOverScreen({ score, onPlayAgain }) {
       // WEBHOOK: Send a Slack message announcing the new high score!
       // This is where the webhook fires — a POST request to the Slack URL
       await sendSlackMessage(
-        `🐱 New high score! ${name.trim()} scored ${score} in Pawned! 🏆`
+        `🐱 New high score! ${name.trim()} scored ${score} in Pawn-ed! 🏆`
       )
     }
 

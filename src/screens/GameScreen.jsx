@@ -22,7 +22,7 @@ const MAX_MISSES = 3
 const BASE_SPEED = 2000         // Starting swing duration in ms (slower = easier)
 const SPEED_DECREASE = 150      // How much faster each round gets (ms removed)
 const MIN_SPEED = 600           // Fastest possible swing (so it doesn't become impossible)
-const HIT_ZONE = 12             // How close the paw needs to be to the target (in degrees)
+const HIT_ZONE = 20             // How close the paw needs to be to the target (in degrees)
 const SWING_ANGLE = 40          // Max rotation in degrees (swings -40 to +40)
 
 function GameScreen({ onGameOver }) {
@@ -48,11 +48,13 @@ function GameScreen({ onGameOver }) {
   const animationStart = useRef(Date.now())
   const rafId = useRef(null)
   const swattingRef = useRef(false)
+  const speedRef = useRef(speed)
+  const directionRef = useRef(direction)
 
-  // Keep the ref in sync with state (refs are needed inside requestAnimationFrame)
-  useEffect(() => {
-    swattingRef.current = swatting
-  }, [swatting])
+  // Keep refs in sync with state (refs are needed inside requestAnimationFrame and handleSwat)
+  useEffect(() => { swattingRef.current = swatting }, [swatting])
+  useEffect(() => { speedRef.current = speed }, [speed])
+  useEffect(() => { directionRef.current = direction }, [direction])
 
   // Reset animation timer when speed changes (new round)
   useEffect(() => {
@@ -86,9 +88,13 @@ function GameScreen({ onGameOver }) {
 
     setSwatting(true)
 
-    // Hit detection uses the SAME angle that's visually displayed.
-    // No more sync issues — what you see is what gets checked.
-    const distance = Math.abs(angle)
+    // Calculate the angle RIGHT NOW instead of reading from state (which can lag 1-2 frames).
+    // This uses the exact same formula as the animation loop so it matches what's on screen.
+    const elapsed = Date.now() - animationStart.current
+    const progress = (elapsed % speedRef.current) / speedRef.current
+    const currentAngle = -SWING_ANGLE * Math.cos(progress * Math.PI * 2) * directionRef.current
+
+    const distance = Math.abs(currentAngle)
     const isHit = distance < HIT_ZONE
 
     if (isHit) {
@@ -125,7 +131,7 @@ function GameScreen({ onGameOver }) {
         }
       }, 600)
     }
-  }, [feedback, swatting, angle, score, misses, onGameOver])
+  }, [feedback, swatting, score, misses, onGameOver])
 
   // Listen for Enter / Space key presses — same as clicking/tapping
   useEffect(() => {
@@ -157,18 +163,28 @@ function GameScreen({ onGameOver }) {
 
         {/* The table surface */}
         <div className="table-surface">
-          {/* The target object — a vase that gets knocked off on hit */}
-          <div className={`target ${!targetVisible ? 'target-hit' : ''} ${feedback === 'miss' ? 'target-miss' : ''}`}>
-            <img src={vaseImg} alt="Vase" className="target-img" />
-          </div>
+          {/* The target object — a vase that shatters on hit */}
+          {targetVisible ? (
+            <div className={`target ${feedback === 'miss' ? 'target-miss' : ''}`}>
+              <img src={vaseImg} alt="Vase" className="target-img" />
+            </div>
+          ) : (
+            <div className="shatter">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className={`shard shard-${i}`}>
+                  <img src={vaseImg} alt="" className="target-img" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Feedback text — shows briefly on hit or miss */}
-      {feedback === 'hit' && <div className="feedback feedback-hit">Pawned!</div>}
+      {feedback === 'hit' && <div className="feedback feedback-hit">Pawn-ed!</div>}
       {feedback === 'miss' && <div className="feedback feedback-miss">Tsk!</div>}
 
-      <p className="tap-hint">Click, tap or press enter to remove intruder</p>
+      <p className="tap-hint">Enter, click or tap the vase</p>
     </div>
   )
 }
