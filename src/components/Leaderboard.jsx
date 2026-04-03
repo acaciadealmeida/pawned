@@ -16,6 +16,12 @@ function Leaderboard() {
   // useEffect runs code when the component first appears on screen.
   // This is where we fetch the leaderboard data.
   useEffect(() => {
+    // No client → env vars missing; don't call the API (would crash — see ../lib/supabase.js).
+    if (!supabase) {
+      setLoading(false)
+      return
+    }
+
     async function fetchScores() {
       // This is the API call! We're asking Supabase:
       // "SELECT name, score FROM scores ORDER BY score DESC LIMIT 5"
@@ -29,7 +35,7 @@ function Leaderboard() {
       if (error) {
         console.error('Failed to fetch scores:', error)
       } else {
-        setScores(data)
+        setScores(data ?? [])
       }
       setLoading(false)
     }
@@ -38,6 +44,14 @@ function Leaderboard() {
   }, [])  // the empty [] means "run this once when the component loads"
 
   if (loading) return <div className="leaderboard">Loading scores...</div>
+  if (!supabase) {
+    return (
+      <div className="leaderboard">
+        Leaderboard offline — add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code>{' '}
+        to <code>.env</code> (copy from <code>.env.example</code>).
+      </div>
+    )
+  }
   if (scores.length === 0) return <div className="leaderboard">No scores yet. Be the first!</div>
 
   return (
