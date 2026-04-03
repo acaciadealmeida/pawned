@@ -15,6 +15,7 @@ import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react
 import ScoreBoard from '../components/ScoreBoard'
 import catArmImg from '../assets/cat-arm.png'
 import gameBackgroundImg from '../assets/desktop-background.png'
+import mobileBackgroundImg from '../assets/mobile background.png'
 import vaseImg from '../assets/vase.png'
 import { isPawHittingVase } from '../lib/pawVaseCollision'
 
@@ -157,8 +158,13 @@ function GameScreen({ onGameOver }) {
   return (
     <div className="game-screen-root">
       <div
-        className="screen-bg screen-bg--game"
+        className="screen-bg screen-bg--game screen-bg--desktop"
         style={{ backgroundImage: `url(${gameBackgroundImg})` }}
+        aria-hidden
+      />
+      <div
+        className="screen-bg screen-bg--game screen-bg--mobile"
+        style={{ backgroundImage: `url(${mobileBackgroundImg})` }}
         aria-hidden
       />
       <div
