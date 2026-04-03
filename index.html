@@ -2,12 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Tab icon: file lives in public/ so the browser can GET /favicon.png directly (not bundled by Vite). -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:wght@400;700&display=swap" rel="stylesheet" />
-    <title>Pawn-ed</title>
+
+    <title>Pawn-ed. Cozy cat-astrophe</title>
+    <meta
+      name="description"
+      content="A cozy browser game — help the cat knock things off the table. Swing, time your tap, and chase the high score."
+    />
+
+    <!-- Open Graph / Twitter: used when someone pastes your game URL in Slack, Discord, iMessage, etc. -->
+    <!-- VITE_SITE_URL is injected at build (vite.config.js). Set it in .env — see .env.example. No trailing slash. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Pawn-ed. Cozy cat-astrophe" />
+    <meta
+      property="og:description"
+      content="A cozy browser game — help the cat knock things off the table. Swing, time your tap, and chase the high score."
+    />
+    <meta property="og:image" content="___SITE_URL___/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Pawn-ed. Cozy cat-astrophe" />
+    <meta
+      name="twitter:description"
+      content="A cozy browser game — help the cat knock things off the table. Swing, time your tap, and chase the high score."
+    />
+    <meta name="twitter:image" content="___SITE_URL___/og-image.png" />
   </head>
   <body>
     <div id="root"></div>

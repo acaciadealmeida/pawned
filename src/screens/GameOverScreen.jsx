@@ -10,8 +10,22 @@ import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { sendSlackMessage } from '../lib/slack'
 
+// Key for localStorage — remembers the last name you submitted on this browser.
+// That way "Play Again" and future visits pre-fill the field (same device + same site).
+const PLAYER_NAME_STORAGE_KEY = 'pawned-player-name'
+
+function readStoredPlayerName() {
+  try {
+    const stored = localStorage.getItem(PLAYER_NAME_STORAGE_KEY)
+    return stored ? stored.trim() : ''
+  } catch {
+    return ''
+  }
+}
+
 function GameOverScreen({ score, onPlayAgain }) {
-  const [name, setName] = useState('')
+  // Initial state comes from localStorage so returning players see their name already filled in.
+  const [name, setName] = useState(readStoredPlayerName)
   const [submitted, setSubmitted] = useState(false)
   const [isHighScore, setIsHighScore] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -21,6 +35,13 @@ function GameOverScreen({ score, onPlayAgain }) {
     e.preventDefault()  // Prevent the form from reloading the page (default browser behavior)
 
     if (!name.trim() || submitting) return
+
+    // Without Supabase env vars we never created a client — can't save (see ../lib/supabase.js).
+    if (!supabase) {
+      console.warn('Supabase is not configured; copy .env.example to .env and add your keys.')
+      return
+    }
+
     setSubmitting(true)
 
     // API CALL #1: Insert the score into the "scores" table
@@ -33,6 +54,13 @@ function GameOverScreen({ score, onPlayAgain }) {
       console.error('Failed to save score:', insertError)
       setSubmitting(false)
       return
+    }
+
+    // Remember this name locally — only after a successful save, not on every keystroke.
+    try {
+      localStorage.setItem(PLAYER_NAME_STORAGE_KEY, name.trim())
+    } catch {
+      /* ignore quota / private mode */
     }
 
     // API CALL #2: Check if this is the new highest score
@@ -68,25 +96,32 @@ function GameOverScreen({ score, onPlayAgain }) {
       </div>
 
       {!submitted ? (
-        // The score submission form
-        <form onSubmit={handleSubmit} className="score-form">
-          <input
-            type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="name-input"
-            maxLength={20}
-            autoFocus
-          />
-          <button
-            type="submit"
-            className="submit-button"
-            disabled={!name.trim() || submitting}
-          >
-            {submitting ? 'Saving...' : 'Submit score'}
-          </button>
-        </form>
+        supabase ? (
+          // The score submission form
+          <form onSubmit={handleSubmit} className="score-form">
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="name-input"
+              maxLength={20}
+              autoFocus
+            />
+            <button
+              type="submit"
+              className="submit-button"
+              disabled={!name.trim() || submitting}
+            >
+              {submitting ? 'Saving...' : 'Submit score'}
+            </button>
+          </form>
+        ) : (
+          <p className="score-form">
+            Scores can&apos;t be saved until Supabase is configured — copy <code>.env.example</code> to{' '}
+            <code>.env</code> and add your project URL and anon key.
+          </p>
+        )
       ) : (
         // After submission — show confirmation and maybe high score celebration
         <div className="submitted">
