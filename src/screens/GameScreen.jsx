@@ -14,6 +14,7 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import ScoreBoard from '../components/ScoreBoard'
 import catArmImg from '../assets/cat-arm.png'
+import gameBackgroundImg from '../assets/desktop-background.png'
 import vaseImg from '../assets/vase.png'
 import { isPawHittingVase } from '../lib/pawVaseCollision'
 
@@ -144,10 +145,16 @@ function GameScreen({ onGameOver }) {
   const hitDebug = shouldShowHitDebug()
 
   return (
-    <div
-      className={`screen game-screen ${shaking ? 'shake' : ''}${hitDebug ? ' game-screen--debug-hits' : ''}`}
-      onClick={handleSwat}
-    >
+    <div className="game-screen-root">
+      <div
+        className="screen-bg screen-bg--game"
+        style={{ backgroundImage: `url(${gameBackgroundImg})` }}
+        aria-hidden
+      />
+      <div
+        className={`screen game-screen ${shaking ? 'shake' : ''}${hitDebug ? ' game-screen--debug-hits' : ''}`}
+        onClick={handleSwat}
+      >
       <ScoreBoard score={score} misses={misses} maxMisses={MAX_MISSES} />
 
       <div className="arena">
@@ -183,6 +190,7 @@ function GameScreen({ onGameOver }) {
       {feedback === 'miss' && <div className="feedback feedback-miss">Tsk!</div>}
 
       <p className="tap-hint">Enter, click or tap the vase</p>
+      </div>
     </div>
   )
 }

@@ -21,6 +21,17 @@ npm run dev
 
 Open the URL Vite prints (usually `http://localhost:5173`).
 
+### Backgrounds (start + game)
+
+The **start** screen uses a full-viewport photo ([`src/assets/opening-2.png`](src/assets/opening-2.png)); the **game** screen uses [`src/assets/desktop-background.png`](src/assets/desktop-background.png). CSS uses `background-size: cover`, `background-position: center`, and full viewport height so images fill the screen vertically; on narrow phones the sides are cropped evenly.
+
+### Test on your phone
+
+| Method | URL / command |
+|--------|----------------|
+| **Production** | https://pawned-olive.vercel.app/ |
+| **Same Wi‑Fi as your dev machine** | Run `npm run dev -- --host` and open the **Network** URL Vite prints (e.g. `http://192.168.x.x:5173`) on your phone. |
+
 ### Hit box debugging (SAT collision overlays)
 
 Green = paw strike zone, blue = vase target — useful when tuning [`src/lib/pawVaseCollision.js`](src/lib/pawVaseCollision.js) and `.paw-hit` / `.vase-hit` in CSS.

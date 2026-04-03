@@ -9,6 +9,7 @@
 import { useEffect } from 'react'
 import Leaderboard from '../components/Leaderboard'
 import catImage from '../assets/cat.png'
+import openingBg from '../assets/opening-2.png'
 
 function StartScreen({ onPlay }) {
   // Enter / Space start the game (same keys as Play Again on game over for consistency).
@@ -23,16 +24,24 @@ function StartScreen({ onPlay }) {
   }, [onPlay])
 
   return (
-    <div className="screen start-screen">
-      <img src={catImage} alt="A mischievous ink-wash cat" className="start-cat" />
-      <h1 className="game-title">Pawn-ed</h1>
-      <p className="tagline">Get off my table</p>
+    <div className="start-screen-root">
+      {/* Full-viewport background: cover = fill height, center, crop sides (see App.css .screen-bg). */}
+      <div
+        className="screen-bg screen-bg--start"
+        style={{ backgroundImage: `url(${openingBg})` }}
+        aria-hidden
+      />
+      <div className="screen start-screen">
+        <img src={catImage} alt="A mischievous ink-wash cat" className="start-cat" />
+        <h1 className="game-title">Pawn-ed</h1>
+        <p className="tagline">Get off my table</p>
 
-      <button type="button" className="play-button" onClick={onPlay}>
-        Play
-      </button>
+        <button type="button" className="play-button" onClick={onPlay}>
+          Play
+        </button>
 
-      <Leaderboard />
+        <Leaderboard />
+      </div>
     </div>
   )
 }

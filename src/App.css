@@ -42,10 +42,76 @@
   max-width: 500px;
 }
 
+/* Full-viewport photo backgrounds (start + game): cover = fill viewport height, centered, sides crop on narrow screens. */
+.screen-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.screen-bg--start::after,
+.screen-bg--game::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Light scrim so UI stays readable on busy photos */
+.screen-bg--start::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 247, 250, 0.88) 0%,
+    rgba(245, 247, 250, 0.58) 50%,
+    rgba(245, 247, 250, 0.75) 100%
+  );
+}
+
+.screen-bg--game::after {
+  background: linear-gradient(
+    to bottom,
+    rgba(245, 247, 250, 0.42) 0%,
+    rgba(245, 247, 250, 0.32) 55%,
+    rgba(245, 247, 250, 0.48) 100%
+  );
+}
+
+.start-screen-root,
+.game-screen-root {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.start-screen-root > .screen,
+.game-screen-root > .screen {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
 /* ----- 2. START SCREEN ----- */
 
 .start-screen {
   gap: 16px;
+}
+
+/* Leaderboard panel reads clearly on opening art */
+.start-screen .leaderboard {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 }
 
 /* The sumi-e cat illustration on the start screen */
@@ -107,11 +173,27 @@
   cursor: pointer;
   user-select: none;
   position: relative;
-  min-height: 80vh;
-  min-height: 80dvh;
+  flex: 1 1 auto;
+  min-height: 85vh;
+  min-height: 85dvh;
   justify-content: flex-start;
   padding-top: 20px;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* HUD + hints: slight shadow so they stay legible on desktop-background.png */
+.game-screen-root .scoreboard {
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9), 0 0 12px rgba(245, 247, 250, 0.9);
+}
+.game-screen-root .scoreboard-score {
+  color: #2d3339;
+}
+.game-screen-root .tap-hint {
+  color: #5a6570;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
+}
+.game-screen-root .feedback {
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .game-screen.shake {
