@@ -21,11 +21,15 @@
 /* ----- 1. BASE / LAYOUT ----- */
 
 .app {
-  min-height: 100vh;
-  min-height: 100dvh;
+  flex: 1;
   display: flex;
-  align-items: center;
+  align-items: stretch; /* fill viewport height — center was shrinking the column and showing #F5F7FA bands on mobile */
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  min-height: calc(var(--vh, 1vh) * 100);
   background: #F5F7FA;
   color: #6B7785;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -43,25 +47,33 @@
 }
 
 /* Full-viewport photo backgrounds (start + game): cover = fill viewport height, centered, sides crop on narrow screens. */
+/* Oversize the fixed layer so Android Chrome's gesture-bar area (below inset:0) never shows the body color. */
 .screen-bg {
   position: fixed;
-  inset: 0;
+  top: -50px;
+  left: -50px;
+  right: -50px;
+  bottom: -50px;
   z-index: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   pointer-events: none;
+  transform: translateZ(0);
 }
 
 .start-screen-root,
 .game-screen-root {
   position: relative;
   width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
+  max-width: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  min-height: calc(var(--vh, 1vh) * 100);
 }
 
 .start-screen-root > .screen,
@@ -118,6 +130,15 @@
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   box-shadow: 0 4px 24px rgba(62, 40, 28, 0.1);
+}
+
+.start-screen .leaderboard h2 {
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(62, 40, 28, 0.35);
+}
+
+.start-screen .leaderboard .leaderboard-score {
+  color: #1a1a1a;
 }
 
 /* The sumi-e cat illustration on the start screen — soft brown halo behind the art */
@@ -188,6 +209,12 @@
   justify-content: flex-start;
   padding-top: 20px;
   -webkit-tap-highlight-color: transparent;
+  /* Don’t let the browser treat touches as scroll/pan — that steals taps before click fires (esp. Android Chrome). */
+  touch-action: none;
+}
+
+.game-screen-root {
+  touch-action: none;
 }
 
 /* HUD: under paw layer (z-index); dark text shadow only (no frosted panel) */
@@ -241,15 +268,15 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 60px;  /* room for table legs below the surface */
+  padding-bottom: 48px; /* vase sits higher so paw arc crosses it */
   overflow: visible; /* paw must overlap scoreboard; .app overflow clips the viewport */
 }
 
 /* Pendulum — rotation driven by JS for perfect hit detection sync */
 .pendulum {
   position: absolute;
-  /* Pivot (transform-origin top center) sits above the arena so the shoulder/body is off-screen */
-  top: -175px;
+  /* Pivot above arena; tuned so paw reaches the vase at mid-swing */
+  top: -158px;
   left: 50%;
   transform-origin: top center;
   display: flex;
@@ -280,14 +307,13 @@
   box-sizing: border-box;
 }
 
-/* Slightly smaller than full art — forgiving but not huge */
 .vase-hit {
   position: absolute;
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 108px;
-  height: 120px;
+  width: 216px;
+  height: 240px;
   pointer-events: none;
   opacity: 0;
   box-sizing: border-box;
@@ -320,18 +346,19 @@
   position: relative;
   display: flex;
   justify-content: center;
+  min-height: 280px;
 }
 
-/* The target object — sized so paw arc and vase slightly overlap */
+/* The target object — 2× desktop size, nudged down */
 .target {
   position: absolute;
-  bottom: -34px;
+  bottom: -156px;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease-out;
 }
 
 .target-img {
-  width: 156px;
-  height: 168px;
+  width: 312px;
+  height: 336px;
   object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
 }
@@ -339,20 +366,20 @@
 /* Shatter effect — 5 shards of the vase fly apart */
 .shatter {
   position: absolute;
-  bottom: -34px;
-  width: 156px;
-  height: 168px;
+  bottom: -156px;
+  width: 312px;
+  height: 336px;
 }
 .shard {
   position: absolute;
-  width: 156px;
-  height: 168px;
+  width: 312px;
+  height: 336px;
   overflow: hidden;
   animation: shardFade 0.7s ease-out forwards;
 }
 .shard img {
-  width: 156px;
-  height: 168px;
+  width: 312px;
+  height: 336px;
   object-fit: contain;
 }
 /* Each shard clips a different piece of the vase and flies in a different direction */
@@ -638,25 +665,69 @@
   .game-title { font-size: 2.4rem; letter-spacing: 3px; }
   .gameover-title { font-size: 2.4rem; letter-spacing: 3px; }
   .screen { padding: 24px 16px; gap: 16px; }
-  .arena { height: 360px; }
-  .pendulum { top: -145px; }
-  .pendulum-arm { height: 340px; width: 104px; }
-  .paw-hit { width: 54px; height: 60px; bottom: 0; }
-  .vase-hit { width: 88px; height: 98px; }
-  .target-img { width: 118px; height: 128px; }
-  .shatter {
-    width: 118px;
-    height: 128px;
+
+  /* --- Mobile game: everything fits in viewport, no scroll --- */
+  .game-screen {
+    padding-top: 10px;
+    gap: 8px;
   }
-  .shard,
+
+  .arena {
+    height: 70vh;
+    height: 70dvh;
+    padding-bottom: 0;
+  }
+
+  /* Pendulum: pivot higher so the paw only overlaps the vase in a tighter swing window */
+  .pendulum {
+    top: -130px;
+  }
+  .pendulum-arm {
+    height: 460px;
+    width: 140px;
+  }
+  .paw-hit {
+    width: 84px;
+    height: 96px;
+    bottom: 0;
+  }
+
+  /* 75% of previous 3× vase (354→265, 300→225) */
+  .target-img {
+    width: min(265px, 64vw);
+    height: auto;
+    aspect-ratio: 354 / 384;
+  }
+  .vase-hit {
+    width: min(225px, 54vw);
+    height: auto;
+    aspect-ratio: 300 / 336;
+  }
+  .shatter {
+    width: min(265px, 64vw);
+    height: auto;
+    aspect-ratio: 354 / 384;
+  }
+  .shard {
+    width: min(265px, 64vw);
+    aspect-ratio: 354 / 384;
+    height: auto;
+  }
   .shard img {
-    width: 118px;
-    height: 128px;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* Vase sits at the bottom of the arena, fully visible */
+  .table-surface {
+    min-height: 180px;
   }
   .target,
   .shatter {
-    bottom: -28px;
+    bottom: 0;
   }
+
   .start-cat { width: 180px; }
   .feedback { font-size: 2.2rem; }
   .final-score-number { font-size: 4.5rem; }

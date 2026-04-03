@@ -4,7 +4,51 @@
     <meta charset="UTF-8" />
     <!-- Tab icon: file lives in public/ so the browser can GET /favicon.png directly (not bundled by Vite). -->
     <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Match app chrome so Pixel/Android status bar / gesture area isn’t a different “white” than #F5F7FA -->
+    <meta name="theme-color" content="#2c2420" />
+    <!--
+      --vh = 1% of real viewport height. innerHeight is more reliable on Android Chrome than visualViewport alone.
+      IMPORTANT: In CSS, put min-height: calc(var(--vh)*100) *after* 100dvh/-webkit-fill-available or those override --vh.
+    -->
+    <script>
+      (function () {
+        function visibleHeight() {
+          var inner = window.innerHeight
+          var vv = window.visualViewport
+          if (!vv || vv.height <= 0) return inner
+          // Use whichever is larger so we don’t under-fill when one API is briefly wrong (common on Chrome).
+          return Math.max(inner, vv.height)
+        }
+        function setVH() {
+          var h = visibleHeight()
+          var unit = h * 0.01 + 'px'
+          document.documentElement.style.setProperty('--vh', unit)
+          /* Lock document height to real pixels — helps Android Chrome close the bottom gap next to fixed layers. */
+          document.documentElement.style.height = h + 'px'
+          if (document.body) {
+            document.body.style.minHeight = h + 'px'
+          }
+          var root = document.getElementById('root')
+          if (root) {
+            root.style.minHeight = h + 'px'
+          }
+        }
+        setVH()
+        requestAnimationFrame(setVH)
+        requestAnimationFrame(function () {
+          requestAnimationFrame(setVH)
+        })
+        window.addEventListener('resize', setVH)
+        window.addEventListener('orientationchange', setVH)
+        window.addEventListener('load', setVH)
+        setTimeout(setVH, 0)
+        setTimeout(setVH, 250)
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', setVH)
+        }
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Averia+Serif+Libre:wght@400;700&display=swap" rel="stylesheet" />

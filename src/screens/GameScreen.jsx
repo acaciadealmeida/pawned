@@ -131,6 +131,16 @@ function GameScreen({ onGameOver }) {
     }
   }, [feedback, swatting, score, misses, onGameOver])
 
+  // Pointer events (not click) — on mobile, taps often don’t become click reliably when scroll/pan wins; touch-action: none on .game-screen helps too.
+  const onGamePointerDown = useCallback(
+    (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      e.preventDefault()
+      handleSwat()
+    },
+    [handleSwat],
+  )
+
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -153,7 +163,7 @@ function GameScreen({ onGameOver }) {
       />
       <div
         className={`screen game-screen ${shaking ? 'shake' : ''}${hitDebug ? ' game-screen--debug-hits' : ''}`}
-        onClick={handleSwat}
+        onPointerDown={onGamePointerDown}
       >
       <ScoreBoard score={score} misses={misses} maxMisses={MAX_MISSES} />
 

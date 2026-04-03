@@ -7,6 +7,38 @@
   box-sizing: border-box;
 }
 
+/* Fill the visible viewport; --vh is set in index.html from window.innerHeight (mobile Safari). */
+html {
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  /* Dark fallback so any gap from the gesture bar / browser chrome blends with photos instead of showing bright white. */
+  background: #2c2420;
+  color-scheme: only light;
+}
+
 body {
-  background: #F5F7FA;
+  /* Fallbacks first; calc(--vh) MUST win — Android Chrome was applying -webkit-fill-available last and ignoring --vh */
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  min-height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
+  max-width: 100%;
+  background: #2c2420;
+  overflow-x: hidden;
+  overscroll-behavior-y: none;
+  /* Faster taps; avoids some browsers treating horizontal gestures as scroll */
+  touch-action: manipulation;
+}
+
+#root {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
+  min-height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
 }
