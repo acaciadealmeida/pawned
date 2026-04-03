@@ -160,7 +160,7 @@ function GameScreen({ onGameOver }) {
       <div className="arena">
         <div
           className={`pendulum ${swatting ? 'pendulum-swat' : ''}`}
-          style={{ transform: `rotate(${angle}deg)` }}
+          style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
         >
           <img src={catArmImg} alt="" className="pendulum-arm" />
           {/* Strike zone for SAT — same transform as arm; size/position tuned in CSS */}

@@ -53,33 +53,6 @@
   pointer-events: none;
 }
 
-.screen-bg--start::after,
-.screen-bg--game::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* Light scrim so UI stays readable on busy photos */
-.screen-bg--start::after {
-  background: linear-gradient(
-    to bottom,
-    rgba(245, 247, 250, 0.88) 0%,
-    rgba(245, 247, 250, 0.58) 50%,
-    rgba(245, 247, 250, 0.75) 100%
-  );
-}
-
-.screen-bg--game::after {
-  background: linear-gradient(
-    to bottom,
-    rgba(245, 247, 250, 0.42) 0%,
-    rgba(245, 247, 250, 0.32) 55%,
-    rgba(245, 247, 250, 0.48) 100%
-  );
-}
-
 .start-screen-root,
 .game-screen-root {
   position: relative;
@@ -104,6 +77,39 @@
   gap: 16px;
 }
 
+/* Title screen: white type on opening photo */
+.start-screen .game-title {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: #fff;
+  background-clip: unset;
+  color: #fff;
+  text-shadow:
+    0 0 20px rgba(62, 40, 28, 0.58),
+    0 0 40px rgba(62, 40, 28, 0.42),
+    0 2px 8px rgba(62, 40, 28, 0.52),
+    0 4px 16px rgba(62, 40, 28, 0.38);
+}
+
+.start-screen .tagline {
+  color: #fff;
+  text-shadow:
+    0 0 12px rgba(62, 40, 28, 0.52),
+    0 0 28px rgba(62, 40, 28, 0.42),
+    0 1px 3px rgba(62, 40, 28, 0.62);
+}
+
+.start-screen .play-button {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(62, 40, 28, 0.22);
+}
+.start-screen .play-button:hover {
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 6px 24px rgba(62, 40, 28, 0.28);
+}
+
 /* Leaderboard panel reads clearly on opening art */
 .start-screen .leaderboard {
   padding: 16px 18px;
@@ -111,14 +117,17 @@
   background: rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 24px rgba(62, 40, 28, 0.1);
 }
 
-/* The sumi-e cat illustration on the start screen */
+/* The sumi-e cat illustration on the start screen — soft brown halo behind the art */
 .start-cat {
   width: 240px;
   height: auto;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.06));
+  filter:
+    drop-shadow(0 0 18px rgba(62, 40, 28, 0.48))
+    drop-shadow(0 0 40px rgba(62, 40, 28, 0.38))
+    drop-shadow(0 4px 16px rgba(62, 40, 28, 0.42));
 }
 
 .game-title {
@@ -181,19 +190,42 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* HUD + hints: slight shadow so they stay legible on desktop-background.png */
-.game-screen-root .scoreboard {
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9), 0 0 12px rgba(245, 247, 250, 0.9);
+/* HUD: under paw layer (z-index); dark text shadow only (no frosted panel) */
+.game-screen .scoreboard {
+  position: relative;
+  z-index: 1;
 }
 .game-screen-root .scoreboard-score {
-  color: #2d3339;
+  color: #fff;
 }
-.game-screen-root .tap-hint {
-  color: #5a6570;
-  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
+.game-screen .scoreboard-score,
+.game-screen .scoreboard-lives {
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.85),
+    0 2px 12px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(0, 0, 0, 0.4);
+}
+.game-screen .tap-hint {
+  position: relative;
+  z-index: 4;
+  color: #e8ecf0;
+  margin-top: auto;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: min(100%, 360px);
+  text-align: center;
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.85),
+    0 2px 12px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(0, 0, 0, 0.4);
 }
 .game-screen-root .feedback {
-  text-shadow: 0 2px 8px rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.08);
+  z-index: 5;
+  color: #fff;
+  text-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.85),
+    0 2px 12px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(0, 0, 0, 0.4);
 }
 
 .game-screen.shake {
@@ -202,6 +234,7 @@
 
 .arena {
   position: relative;
+  z-index: 2; /* above scoreboard so the paw can swing over the HUD */
   width: 100%;
   height: 420px;
   display: flex;
@@ -209,12 +242,14 @@
   align-items: center;
   justify-content: flex-end;
   padding-bottom: 60px;  /* room for table legs below the surface */
+  overflow: visible; /* paw must overlap scoreboard; .app overflow clips the viewport */
 }
 
 /* Pendulum — rotation driven by JS for perfect hit detection sync */
 .pendulum {
   position: absolute;
-  top: 0;
+  /* Pivot (transform-origin top center) sits above the arena so the shoulder/body is off-screen */
+  top: -175px;
   left: 50%;
   transform-origin: top center;
   display: flex;
@@ -225,8 +260,8 @@
 
 /* The cat arm — sumi-e ink wash image (includes paw at the bottom) */
 .pendulum-arm {
-  width: 90px;
-  height: 300px;
+  width: 132px;
+  height: 430px;
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.08));
   transition: transform 0.1s;
@@ -238,8 +273,8 @@
   left: 50%;
   bottom: 2px;
   transform: translateX(-50%);
-  width: 46px;
-  height: 52px;
+  width: 68px;
+  height: 76px;
   pointer-events: none;
   opacity: 0;
   box-sizing: border-box;
@@ -251,8 +286,8 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 90px;
-  height: 100px;
+  width: 108px;
+  height: 120px;
   pointer-events: none;
   opacity: 0;
   box-sizing: border-box;
@@ -287,16 +322,16 @@
   justify-content: center;
 }
 
-/* The target object */
+/* The target object — sized so paw arc and vase slightly overlap */
 .target {
   position: absolute;
-  bottom: -56px;
+  bottom: -34px;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease-out;
 }
 
 .target-img {
-  width: 130px;
-  height: 140px;
+  width: 156px;
+  height: 168px;
   object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
 }
@@ -304,20 +339,20 @@
 /* Shatter effect — 5 shards of the vase fly apart */
 .shatter {
   position: absolute;
-  bottom: -56px;
-  width: 130px;
-  height: 140px;
+  bottom: -34px;
+  width: 156px;
+  height: 168px;
 }
 .shard {
   position: absolute;
-  width: 130px;
-  height: 140px;
+  width: 156px;
+  height: 168px;
   overflow: hidden;
   animation: shardFade 0.7s ease-out forwards;
 }
 .shard img {
-  width: 130px;
-  height: 140px;
+  width: 156px;
+  height: 168px;
   object-fit: contain;
 }
 /* Each shard clips a different piece of the vase and flies in a different direction */
@@ -353,12 +388,12 @@
   animation: wobble 0.4s ease-in-out;
 }
 
-/* Feedback text — both hit and miss use the same light, understated style */
+/* Feedback text — hit / miss (game screen only) */
 .feedback {
   font-size: 2.8rem;
   font-weight: 400;
   letter-spacing: 4px;
-  color: #9BA4AE;
+  color: #fff;
   animation: popIn 0.3s ease-out;
   position: absolute;
   bottom: 80px;
@@ -367,7 +402,6 @@
 .tap-hint {
   color: #BFC6CD;
   font-size: 0.85rem;
-  margin-top: auto;
   letter-spacing: 0.5px;
 }
 
@@ -605,10 +639,24 @@
   .gameover-title { font-size: 2.4rem; letter-spacing: 3px; }
   .screen { padding: 24px 16px; gap: 16px; }
   .arena { height: 360px; }
-  .pendulum-arm { height: 240px; width: 70px; }
-  .paw-hit { width: 40px; height: 44px; bottom: 0; }
-  .vase-hit { width: 72px; height: 82px; }
-  .target-img { width: 100px; height: 110px; }
+  .pendulum { top: -145px; }
+  .pendulum-arm { height: 340px; width: 104px; }
+  .paw-hit { width: 54px; height: 60px; bottom: 0; }
+  .vase-hit { width: 88px; height: 98px; }
+  .target-img { width: 118px; height: 128px; }
+  .shatter {
+    width: 118px;
+    height: 128px;
+  }
+  .shard,
+  .shard img {
+    width: 118px;
+    height: 128px;
+  }
+  .target,
+  .shatter {
+    bottom: -28px;
+  }
   .start-cat { width: 180px; }
   .feedback { font-size: 2.2rem; }
   .final-score-number { font-size: 4.5rem; }
