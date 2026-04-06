@@ -118,11 +118,11 @@
 .start-screen .play-button {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.25);
   box-shadow: 0 4px 16px rgba(62, 40, 28, 0.22);
 }
 .start-screen .play-button:hover {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.35);
   box-shadow: 0 6px 24px rgba(62, 40, 28, 0.28);
 }
 
@@ -137,8 +137,8 @@
 }
 
 .start-screen .leaderboard h2 {
-  color: #fff;
-  text-shadow: 0 1px 3px rgba(62, 40, 28, 0.35);
+  color: #4A5568;
+  text-shadow: none;
 }
 
 .start-screen .leaderboard .leaderboard-score {
@@ -267,12 +267,14 @@
   position: relative;
   z-index: 2; /* above scoreboard so the paw can swing over the HUD */
   width: 100%;
-  height: 420px;
+  height: 47vh;
+  height: 47dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  padding-bottom: 48px; /* vase sits higher so paw arc crosses it */
+  padding-bottom: 5.3vh;
+  padding-bottom: 5.3dvh;
   overflow: visible; /* paw must overlap scoreboard; .app overflow clips the viewport */
 }
 
@@ -280,7 +282,8 @@
 .pendulum {
   position: absolute;
   /* Pivot above arena; tuned so paw reaches the vase at mid-swing */
-  top: -158px;
+  top: -17.5vh;
+  top: -17.5dvh;
   left: 50%;
   transform-origin: top center;
   display: flex;
@@ -291,8 +294,10 @@
 
 /* The cat arm — sumi-e ink wash image (includes paw at the bottom) */
 .pendulum-arm {
-  width: 132px;
-  height: 430px;
+  width: 14.7vh;
+  width: 14.7dvh;
+  height: 48vh;
+  height: 48dvh;
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.08));
   transition: transform 0.1s;
@@ -304,8 +309,10 @@
   left: 50%;
   bottom: 2px;
   transform: translateX(-50%);
-  width: 68px;
-  height: 76px;
+  width: 7.5vh;
+  width: 7.5dvh;
+  height: 8.4vh;
+  height: 8.4dvh;
   pointer-events: none;
   opacity: 0;
   box-sizing: border-box;
@@ -316,8 +323,10 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 216px;
-  height: 240px;
+  width: 24vh;
+  width: 24dvh;
+  height: 26.7vh;
+  height: 26.7dvh;
   pointer-events: none;
   opacity: 0;
   box-sizing: border-box;
@@ -350,19 +359,23 @@
   position: relative;
   display: flex;
   justify-content: center;
-  min-height: 280px;
+  min-height: 31vh;
+  min-height: 31dvh;
 }
 
-/* The target object — 2× desktop size, nudged down */
+/* The target object — viewport-relative so it scales with screen */
 .target {
   position: absolute;
-  bottom: -156px;
+  bottom: -17.3vh;
+  bottom: -17.3dvh;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.4s ease-out;
 }
 
 .target-img {
-  width: 312px;
-  height: 336px;
+  width: 34.7vh;
+  width: 34.7dvh;
+  height: 37.3vh;
+  height: 37.3dvh;
   object-fit: contain;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,0.08));
 }
@@ -370,48 +383,32 @@
 /* Shatter effect — 5 shards of the vase fly apart */
 .shatter {
   position: absolute;
-  bottom: -156px;
-  width: 312px;
-  height: 336px;
+  bottom: -17.3vh;
+  bottom: -17.3dvh;
+  width: 34.7vh;
+  width: 34.7dvh;
+  height: 37.3vh;
+  height: 37.3dvh;
 }
 .shard {
   position: absolute;
-  width: 312px;
-  height: 336px;
+  width: 34.7vh;
+  width: 34.7dvh;
+  height: 37.3vh;
+  height: 37.3dvh;
   overflow: hidden;
-  animation: shardFade 0.7s ease-out forwards;
 }
 .shard img {
-  width: 312px;
-  height: 336px;
+  width: 34.7vh;
+  width: 34.7dvh;
+  height: 37.3vh;
+  height: 37.3dvh;
   object-fit: contain;
 }
-/* Each shard clips a different piece of the vase and flies in a different direction */
-.shard-0 { clip-path: polygon(0% 0%, 50% 0%, 40% 50%, 0% 40%); animation: shard0 0.6s ease-out forwards; }
-.shard-1 { clip-path: polygon(50% 0%, 100% 0%, 100% 45%, 55% 50%); animation: shard1 0.6s ease-out forwards; }
-.shard-2 { clip-path: polygon(0% 40%, 40% 50%, 30% 100%, 0% 100%); animation: shard2 0.6s ease-out forwards; }
-.shard-3 { clip-path: polygon(55% 50%, 100% 45%, 100% 100%, 60% 100%); animation: shard3 0.6s ease-out forwards; }
-.shard-4 { clip-path: polygon(40% 50%, 55% 50%, 60% 100%, 30% 100%); animation: shard4 0.6s ease-out forwards; }
-
-@keyframes shard0 {
+/* Single keyframe driven by CSS custom properties — each shard sets its own --shard-tx/ty/rot */
+@keyframes shardFly {
   0%   { transform: translate(0) rotate(0); opacity: 1; }
-  100% { transform: translate(-60px, -40px) rotate(-25deg); opacity: 0; }
-}
-@keyframes shard1 {
-  0%   { transform: translate(0) rotate(0); opacity: 1; }
-  100% { transform: translate(70px, -30px) rotate(20deg); opacity: 0; }
-}
-@keyframes shard2 {
-  0%   { transform: translate(0) rotate(0); opacity: 1; }
-  100% { transform: translate(-50px, 50px) rotate(-15deg); opacity: 0; }
-}
-@keyframes shard3 {
-  0%   { transform: translate(0) rotate(0); opacity: 1; }
-  100% { transform: translate(60px, 40px) rotate(30deg); opacity: 0; }
-}
-@keyframes shard4 {
-  0%   { transform: translate(0) rotate(0); opacity: 1; }
-  100% { transform: translate(5px, 60px) rotate(5deg); opacity: 0; }
+  100% { transform: translate(var(--shard-tx), var(--shard-ty)) rotate(var(--shard-rot)); opacity: 0; }
 }
 
 /* Miss: nervous wobble */
@@ -432,7 +429,7 @@
 
 .tap-hint {
   color: #BFC6CD;
-  font-size: 0.85rem;
+  font-size: 1.2rem;
   letter-spacing: 0.5px;
 }
 
@@ -448,7 +445,7 @@
 }
 .gameover-screen .final-score-label,
 .gameover-screen .submitted p {
-  color: #7A8290;
+  color: #9BA4AE;
 }
 
 /* Same serif style as the title on start screen */
@@ -506,7 +503,7 @@
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 .name-input::placeholder {
-  color: #555B67;
+  color: #6B7280;
 }
 .name-input:focus {
   border-color: #7EB8DA;
@@ -559,10 +556,10 @@
 
 .play-again-button {
   padding: 12px 36px;
-  border: 2px solid #3A3F4B;
+  border: 2px solid #4A5060;
   border-radius: 50px;
   background: transparent;
-  color: #7A8290;
+  color: #9BA4AE;
   font-size: 1rem;
   cursor: pointer;
   letter-spacing: 1px;

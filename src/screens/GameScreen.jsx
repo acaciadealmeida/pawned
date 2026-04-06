@@ -11,7 +11,7 @@
 // IMPORTANT: The paw position is driven entirely by JavaScript (not CSS animation).
 // The angle we calculate for hit detection is the SAME angle used to rotate the pendulum.
 
-import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useLayoutEffect, useMemo } from 'react'
 import ScoreBoard from '../components/ScoreBoard'
 import catArmImg from '../assets/cat-arm.png'
 import gameBackgroundImg from '../assets/desktop-background.png'
@@ -24,12 +24,72 @@ const BASE_SPEED = 2000         // Starting swing duration in ms (slower = easie
 const SPEED_DECREASE = 150      // How much faster each round gets (ms removed)
 const MIN_SPEED = 600           // Fastest possible swing (so it doesn't become impossible)
 const SWING_ANGLE = 40          // Max rotation in degrees (swings -40 to +40)
+const SHARD_COUNT = 24          // Number of shatter pieces
+
+/** Generate randomized shard data: irregular clip-paths on a grid + random flight vectors. */
+function generateShards(count) {
+  const cols = Math.round(Math.sqrt(count * 1.2))
+  const rows = Math.ceil(count / cols)
+  const shards = []
+
+  for (let r = 0; r < rows && shards.length < count; r++) {
+    for (let c = 0; c < cols && shards.length < count; c++) {
+      const cellW = 100 / cols
+      const cellH = 100 / rows
+      const jitter = () => (Math.random() - 0.5) * cellW * 0.35
+
+      // Irregular quad within the grid cell
+      const x0 = c * cellW
+      const y0 = r * cellH
+      const clipPath = `polygon(${x0 + jitter()}% ${y0 + jitter()}%, ${x0 + cellW + jitter()}% ${y0 + jitter()}%, ${x0 + cellW + jitter()}% ${y0 + cellH + jitter()}%, ${x0 + jitter()}% ${y0 + cellH + jitter()}%)`
+
+      // Flight direction: outward from center
+      const cx = x0 + cellW / 2 - 50
+      const cy = y0 + cellH / 2 - 50
+      const dist = 60 + Math.random() * 80
+      const angle = Math.atan2(cy, cx)
+      const tx = Math.cos(angle) * dist
+      const ty = Math.sin(angle) * dist
+      const rotate = (Math.random() - 0.5) * 60
+      const delay = Math.random() * 0.08
+
+      shards.push({ clipPath, tx, ty, rotate, delay })
+    }
+  }
+  return shards
+}
 
 /** SAT paw/vase hit regions: visible in dev, or add ?debugHit=1 to the URL (production). */
 function shouldShowHitDebug() {
   if (import.meta.env.DEV) return true
   if (typeof window === 'undefined') return false
   return new URLSearchParams(window.location.search).get('debugHit') === '1'
+}
+
+/** Renders the shatter effect with many randomized shards. */
+function Shatter({ vaseImg }) {
+  // useMemo so shards are stable for the lifetime of this mount (re-randomize each break).
+  const shards = useMemo(() => generateShards(SHARD_COUNT), [])
+
+  return (
+    <div className="shatter">
+      {shards.map((s, i) => (
+        <div
+          key={i}
+          className="shard"
+          style={{
+            clipPath: s.clipPath,
+            animation: `shardFly 0.6s ${s.delay}s ease-out forwards`,
+            '--shard-tx': `${s.tx}px`,
+            '--shard-ty': `${s.ty}px`,
+            '--shard-rot': `${s.rotate}deg`,
+          }}
+        >
+          <img src={vaseImg} alt="" className="target-img" />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function GameScreen({ onGameOver }) {
@@ -191,13 +251,7 @@ function GameScreen({ onGameOver }) {
               <div ref={vaseHitRef} className="vase-hit" aria-hidden />
             </div>
           ) : (
-            <div className="shatter">
-              {[0, 1, 2, 3, 4].map((i) => (
-                <div key={i} className={`shard shard-${i}`}>
-                  <img src={vaseImg} alt="" className="target-img" />
-                </div>
-              ))}
-            </div>
+            <Shatter vaseImg={vaseImg} />
           )}
         </div>
       </div>
