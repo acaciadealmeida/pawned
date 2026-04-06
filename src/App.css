@@ -397,6 +397,7 @@
   height: 37.3vh;
   height: 37.3dvh;
   overflow: hidden;
+  animation: shardFade 0.7s ease-out forwards;
 }
 .shard img {
   width: 34.7vh;
@@ -405,10 +406,32 @@
   height: 37.3dvh;
   object-fit: contain;
 }
-/* Single keyframe driven by CSS custom properties — each shard sets its own --shard-tx/ty/rot */
-@keyframes shardFly {
+/* Each shard clips a different piece of the vase and flies in a different direction */
+.shard-0 { clip-path: polygon(0% 0%, 50% 0%, 40% 50%, 0% 40%); animation: shard0 0.6s ease-out forwards; }
+.shard-1 { clip-path: polygon(50% 0%, 100% 0%, 100% 45%, 55% 50%); animation: shard1 0.6s ease-out forwards; }
+.shard-2 { clip-path: polygon(0% 40%, 40% 50%, 30% 100%, 0% 100%); animation: shard2 0.6s ease-out forwards; }
+.shard-3 { clip-path: polygon(55% 50%, 100% 45%, 100% 100%, 60% 100%); animation: shard3 0.6s ease-out forwards; }
+.shard-4 { clip-path: polygon(40% 50%, 55% 50%, 60% 100%, 30% 100%); animation: shard4 0.6s ease-out forwards; }
+
+@keyframes shard0 {
   0%   { transform: translate(0) rotate(0); opacity: 1; }
-  100% { transform: translate(var(--shard-tx), var(--shard-ty)) rotate(var(--shard-rot)); opacity: 0; }
+  100% { transform: translate(-60px, -40px) rotate(-25deg); opacity: 0; }
+}
+@keyframes shard1 {
+  0%   { transform: translate(0) rotate(0); opacity: 1; }
+  100% { transform: translate(70px, -30px) rotate(20deg); opacity: 0; }
+}
+@keyframes shard2 {
+  0%   { transform: translate(0) rotate(0); opacity: 1; }
+  100% { transform: translate(-50px, 50px) rotate(-15deg); opacity: 0; }
+}
+@keyframes shard3 {
+  0%   { transform: translate(0) rotate(0); opacity: 1; }
+  100% { transform: translate(60px, 40px) rotate(30deg); opacity: 0; }
+}
+@keyframes shard4 {
+  0%   { transform: translate(0) rotate(0); opacity: 1; }
+  100% { transform: translate(5px, 60px) rotate(5deg); opacity: 0; }
 }
 
 /* Miss: nervous wobble */
